@@ -1,0 +1,105 @@
+/* Custom CSS variables and styles for Legal Search AI */
+
+:root {
+  /* Light Theme */
+  --bg-primary: #f8fafc; /* Slate 50 */
+  --bg-surface: #ffffff;
+  --border-color: #e2e8f0; /* Slate 200 */
+  
+  --text-primary: #0f172a; /* Slate 900 */
+  --text-secondary: #64748b; /* Slate 500 */
+  
+  --brand-primary: #3b82f6; /* Blue 500 */
+  --brand-primary-hover: #2563eb; /* Blue 600 */
+  
+  --highlight-bg: #fef08a; /* Yellow 200 */
+  --highlight-text: #854d0e; /* Yellow 800 */
+}
+
+html.dark {
+  /* Dark Theme */
+  --bg-primary: #0f172a; /* Slate 900 */
+  --bg-surface: #1e293b; /* Slate 800 */
+  --border-color: #334155; /* Slate 700 */
+  
+  --text-primary: #f8fafc; /* Slate 50 */
+  --text-secondary: #94a3b8; /* Slate 400 */
+  
+  --brand-primary: #3b82f6; /* Blue 500 */
+  --brand-primary-hover: #60a5fa; /* Blue 400 */
+  
+  --highlight-bg: #422006; /* Dark yellow/orange */
+  --highlight-text: #fde047; /* Yellow 300 */
+}
+
+/* Typography Enhancements */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base custom highlight style */
+mark {
+  background-color: var(--highlight-bg);
+  color: var(--highlight-text);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Layout transition classes for switching from Home to Results */
+.app-state-results {
+  justify-content: flex-start !important;
+  padding-top: 2rem !important;
+}
+
+.search-active {
+  max-width: 100% !important;
+  margin-bottom: 2rem !important;
+}
+
+.search-header-hidden {
+  opacity: 0;
+  height: 0;
+  margin: 0 !important;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Skeleton Loading Animation */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--border-color) 25%,
+    var(--bg-primary) 50%,
+    var(--border-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Fade in animation class */
+.fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legal Search AI</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            background: 'var(--bg-primary)',
+            surface: 'var(--bg-surface)',
+            border: 'var(--border-color)',
+            textMain: 'var(--text-primary)',
+            textMuted: 'var(--text-secondary)',
+            primary: 'var(--brand-primary)',
+            primaryHover: 'var(--brand-primary-hover)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-background text-textMain min-h-screen transition-colors duration-300">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-background/80 backdrop-blur border-b border-border transition-colors duration-300">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2 cursor-pointer" id="logo-btn">
+        <i class="ph-fill ph-scales text-2xl text-primary"></i>
+        <span class="font-semibold text-lg tracking-tight hidden sm:block">Legal Search AI</span>
+      </div>
+      <div>
+        <button id="theme-toggle" class="p-2 rounded-lg hover:bg-surface text-textMuted hover:text-textMain transition-colors" aria-label="Toggle Dark Mode">
+          <i class="ph ph-moon text-xl" id="theme-icon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="app-container" class="max-w-6xl mx-auto px-4 w-full flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] min-h-[calc(100vh-4rem)] justify-center">
+    
+    <!-- Search Section -->
+    <div id="search-section" class="w-full max-w-2xl mx-auto transition-all duration-500">
+      
+      <div id="search-header" class="text-center mb-8 transition-opacity duration-300">
+        <h1 class="text-4xl sm:text-5xl font-bold mb-4 tracking-tight">How can I help you?</h1>
+        <p class="text-textMuted text-lg">Search for Vietnamese Traffic Laws using everyday language.</p>
+      </div>
+
+      <div class="relative group z-20">
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <i class="ph ph-magnifying-glass text-textMuted text-xl group-focus-within:text-primary transition-colors"></i>
+        </div>
+        <input 
+          type="text" 
+          id="search-input"
+          class="block w-full bg-surface border border-border rounded-2xl py-4 pl-12 pr-12 text-textMain text-lg placeholder-textMuted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm hover:shadow transition-all"
+          placeholder="Vượt đèn đỏ phạt bao nhiêu?"
+          autocomplete="off"
+        >
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+          <button id="search-button" class="p-2 bg-primary text-white rounded-xl hover:bg-primaryHover transition-colors opacity-0 pointer-events-none group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
+            <i class="ph ph-arrow-right text-lg"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Suggestion Tags (Only visible on home) -->
+      <div id="search-suggestions" class="mt-6 flex flex-wrap justify-center gap-2 transition-opacity duration-300">
+        <button class="suggestion-tag px-3 py-1.5 bg-surface border border-border text-textMuted hover:text-textMain hover:border-textMuted rounded-full text-sm transition-colors">Không đội mũ bảo hiểm</button>
+        <button class="suggestion-tag px-3 py-1.5 bg-surface border border-border text-textMuted hover:text-textMain hover:border-textMuted rounded-full text-sm transition-colors">Đi sai làn đường</button>
+        <button class="suggestion-tag px-3 py-1.5 bg-surface border border-border text-textMuted hover:text-textMain hover:border-textMuted rounded-full text-sm transition-colors">Uống rượu khi lái xe</button>
+      </div>
+    </div>
+
+    <!-- Results Section (Hidden initially) -->
+    <div id="results-section" class="w-full mt-8 pb-16 hidden opacity-0 transition-opacity duration-500">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative items-start">
+        
+        <!-- Primary Content (Left) -->
+        <div class="lg:col-span-8 flex flex-col gap-6">
+          
+          <!-- Loading State for AI Answer -->
+          <div id="ai-loading" class="hidden">
+            <div class="bg-surface border border-border rounded-2xl p-6 shadow-sm">
+              <div class="flex items-center gap-3 mb-4">
+                <i class="ph-duotone ph-sparkle text-primary text-2xl animate-pulse"></i>
+                <div class="h-5 w-32 skeleton rounded"></div>
+              </div>
+              <div class="space-y-3">
+                <div class="h-4 w-full skeleton rounded"></div>
+                <div class="h-4 w-11/12 skeleton rounded"></div>
+                <div class="h-4 w-4/5 skeleton rounded"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Answer Box -->
+          <div id="ai-answer" class="hidden">
+            <div class="bg-surface border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden">
+              <!-- Subtle decorative accent -->
+              <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-primary/30"></div>
+              
+              <div class="flex items-center gap-3 mb-4">
+                <i class="ph-fill ph-sparkle text-primary text-xl"></i>
+                <h2 class="font-semibold text-lg">AI Summary</h2>
+              </div>
+              <div id="ai-answer-content" class="text-textMain leading-relaxed prose-sm md:prose dark:prose-invert">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Source Results List -->
+          <div>
+            <h3 class="text-sm font-semibold tracking-wider text-textMuted uppercase mb-4 mt-2">Related Articles</h3>
+            
+            <div id="results-loading" class="hidden space-y-4">
+              <!-- Skeletons injected via JS -->
+            </div>
+
+            <div id="results-list" class="flex flex-col gap-4">
+              <!-- Injected via JS -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden py-12 text-center text-textMuted bg-surface border border-border rounded-2xl border-dashed">
+              <i class="ph-duotone ph-magnifying-glass-md text-4xl mb-3 opacity-50"></i>
+              <p class="text-lg mb-1">No results found</p>
+              <p class="text-sm">Try asking in a different way or check your spelling.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Context Panel (Right) -->
+        <div class="lg:col-span-4 flex flex-col gap-6 lg:sticky lg:top-24">
+          
+          <div class="bg-surface border border-border rounded-2xl p-6 shadow-sm">
+            <h3 class="font-semibold text-textMain mb-4 flex items-center gap-2">
+              <i class="ph ph-compass text-textMuted text-lg"></i> Complete Context
+            </h3>
+            
+            <div id="context-loading" class="hidden space-y-3">
+              <div class="h-4 w-full skeleton rounded"></div>
+              <div class="h-4 w-3/4 skeleton rounded"></div>
+              <div class="h-4 w-5/6 skeleton rounded"></div>
+            </div>
+
+            <ul id="context-list" class="space-y-3">
+               <!-- Injected via JS -->
+            </ul>
+          </div>
+          
+        </div>
+        
+      </div>
+    </div>
+
+  </main>
+
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
