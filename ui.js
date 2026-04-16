@@ -197,7 +197,7 @@ const UI = {
             <div class="flex-1">
               ${lawRefsHTML || '<div class="text-xs text-textMuted italic">Không có căn cứ pháp lý đính kèm</div>'}
             </div>
-            <button class="result-summary-btn group px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-1.5 self-end mb-1" 
+            <button class="result-summary-btn group px-3 py-1.5 rounded-lg border border-primary/20 dark:border-primary/30 bg-primary/5 dark:bg-primary/10 text-primary dark:text-blue-400 hover:bg-primary hover:text-white dark:hover:bg-primary dark:hover:text-white transition-all shadow-sm flex items-center gap-1.5 self-end mb-1" 
                     title="Tóm tắt nội dung này"
                     data-id="${UI.escapeHtml(docId)}" 
                     data-q="${UI.escapeHtml(questionText)}">
@@ -305,9 +305,9 @@ const UI = {
         const text = typeof s === 'string' ? s : (s.question || s.text || s.query || JSON.stringify(s));
         return `
           <li class="fade-in" style="animation-delay: ${i * 0.05}s">
-            <button class="related-question-btn w-full text-left p-3 rounded-xl hover:bg-bg-primary group transition-colors flex items-start justify-between border border-border/40 hover:border-primary/40 bg-white/50 dark:bg-slate-800/50">
-              <span class="text-[13px] font-medium text-textMuted group-hover:text-textMain transition-colors pr-2">${UI.escapeHtml(text)}</span>
-              <i class="ph ph-arrow-right text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-4px] group-hover:translate-x-0 mt-0.5"></i>
+            <button class="related-question-btn w-full text-left p-3 rounded-xl group transition-all flex items-start justify-between border border-border/40 hover:border-primary/40 dark:border-slate-700/80 dark:hover:border-primary/50 bg-white/50 dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800">
+              <span class="text-[13px] font-medium text-textMuted dark:text-slate-400 group-hover:text-textMain dark:group-hover:text-slate-200 transition-colors pr-2">${UI.escapeHtml(text)}</span>
+              <i class="ph ph-arrow-right text-primary dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-4px] group-hover:translate-x-0 mt-0.5"></i>
             </button>
           </li>
         `;
@@ -347,8 +347,8 @@ const UI = {
       targetNode.innerHTML = displayItems.map(q => {
         const text = typeof q === 'string' ? q : (q.question || q.text || JSON.stringify(q));
         return `
-          <button class="trending-tag px-4 py-2 bg-surface/80 border border-border/80 hover:border-primary/50 text-textMuted hover:text-textMain rounded-full text-[14px] font-medium whitespace-nowrap transition-all shadow-sm hover:shadow flex items-center gap-2">
-            <i class="ph ph-trend-up text-primary"></i>
+          <button class="trending-tag px-4 py-2 bg-white/80 dark:bg-slate-800/90 border border-border/80 dark:border-slate-700/80 hover:border-primary/50 dark:hover:border-primary/50 text-textMuted dark:text-slate-400 hover:text-textMain dark:hover:text-slate-200 rounded-full text-[14px] font-medium whitespace-nowrap transition-all shadow-sm hover:shadow flex items-center gap-2">
+            <i class="ph ph-trend-up text-primary dark:text-blue-400"></i>
             <span>${UI.escapeHtml(text)}</span>
           </button>
         `;
