@@ -33,6 +33,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (savedQuery) {
       el.searchInput.value = savedQuery;
     }
+
+    // Always fetch trending on home screen
+    fetchTrending();
+  }
+
+  async function fetchTrending() {
+    try {
+      const trendingData = await ApiService.getTrendingQuestions();
+      UI.renderTrending(trendingData, (clickedQuery) => {
+        el.searchInput.value = clickedQuery;
+        handleSearchSubmit();
+      });
+    } catch (error) {
+      console.warn("Failed to load trending questions", error);
+    }
   }
 
   function initTheme() {
@@ -120,6 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     el.searchSection.classList.add('search-active');
 
     el.searchHeader.classList.add('search-header-hidden');
+    document.getElementById('trending-container').classList.add('trending-hidden');
 
     el.searchResults.classList.remove('hidden');
     setTimeout(() => {
@@ -138,6 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     el.appContainer.classList.remove('app-state-results');
     el.searchSection.classList.remove('search-active');
     el.searchHeader.classList.remove('search-header-hidden');
+    document.getElementById('trending-container').classList.remove('trending-hidden');
 
     el.searchResults.classList.add('opacity-0');
     setTimeout(() => {
@@ -169,19 +186,31 @@ document.addEventListener("DOMContentLoaded", () => {
         ApiService.suggest(query)
       ]);
 
-      UI.renderResults(searchData);
+      UI.renderResults(searchData, (docId, articleQuestion) => {
+        // Inject the article's question into the search bar
+        el.searchInput.value = articleQuestion;
+
+        // Handle individual article summary request
+        requestSummary(docId, articleQuestion);
+
+        // Smooth scroll back to top of the page smoothly
+        setTimeout(() => {
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
+        }, 100);
+      });
+
       UI.renderRelatedQuestions(suggestData, (clickedQuery) => {
         el.searchInput.value = clickedQuery;
         handleSearchSubmit();
       });
 
-      // Fetch summary for the top result
+      // Initial Summary for the top result
       if (searchData.results && searchData.results.length > 0) {
         const topResult = searchData.results[0];
-        const docId = topResult.id || topResult.doc_id;
-        ApiService.fetchSummary(docId).then(summaryData => {
-          UI.renderSummary(summaryData);
-        });
+        requestSummary(topResult.id || topResult.doc_id, query);
       } else {
         UI.renderSummary(null);
       }
@@ -190,6 +219,22 @@ document.addEventListener("DOMContentLoaded", () => {
       UI.renderResults({ results: [] });
     } finally {
       UI.setLoadingState(false);
+    }
+  }
+
+  async function requestSummary(docId, question) {
+    // Show loading skeleton for summary specifically
+    document.getElementById('ai-answer').classList.add('hidden');
+    document.getElementById('ai-loading').classList.remove('hidden');
+
+    try {
+      const summaryData = await ApiService.fetchSummary(docId, question);
+      UI.renderSummary(summaryData);
+    } catch (err) {
+      console.warn("Manual summary fetch failed", err);
+      UI.renderSummary(null);
+    } finally {
+      document.getElementById('ai-loading').classList.add('hidden');
     }
   }
 

@@ -54,7 +54,7 @@ const UI = {
       el.resultsLoading.classList.remove('hidden');
       el.contextLoading.classList.remove('hidden');
     } else {
-      el.aiLoading.classList.add('hidden');
+      // NOTE: aiLoading is managed by renderSummary / requestSummary
       el.resultsLoading.classList.add('hidden');
       el.contextLoading.classList.add('hidden');
     }
@@ -127,6 +127,7 @@ const UI = {
 
   renderSummary(summaryData) {
     const el = UI.elements;
+    el.aiLoading.classList.add('hidden');
     el.aiAnswerBox.classList.remove('hidden');
     el.aiAnswerBox.classList.add('fade-in');
 
@@ -140,14 +141,30 @@ const UI = {
 
     const summaryText = summaryData.summary || summaryData.text || "";
     el.aiAnswerContent.innerText = summaryText;
+
+    // Truncation check
+    setTimeout(() => {
+      const wrapper = el.aiAnswerContent.closest('.answer-wrapper');
+      const toggle = wrapper.querySelector('.expand-toggle');
+      if (el.aiAnswerContent.scrollHeight <= 130) {
+        el.aiAnswerContent.classList.remove('answer-collapsed');
+        el.aiAnswerContent.classList.add('answer-expanded');
+        toggle.style.display = 'none';
+      } else {
+        el.aiAnswerContent.classList.add('answer-collapsed');
+        el.aiAnswerContent.classList.remove('answer-expanded');
+        toggle.style.display = 'inline-flex';
+      }
+    }, 50);
   },
 
-  renderResults(data) {
+  renderResults(data, onSummaryRequest) {
     const el = UI.elements;
 
     if (!data.results || data.results.length === 0) {
       el.aiAnswerBox.classList.add('hidden');
       el.resultsList.classList.add('hidden');
+      el.resultsLoading.classList.add('hidden');
       el.emptyState.classList.remove('hidden');
       el.emptyState.classList.add('fade-in');
       return;
@@ -156,15 +173,17 @@ const UI = {
     el.resultsList.innerHTML = data.results.map((item, index) => {
       const sanitizedHTML = UI.sanitizeHighlight(item.highlighted_answer || item.answer);
       const lawRefsHTML = UI.renderLawRefs(item.law_refs);
+      const questionText = item.question || item.title || 'Kết quả';
+      const docId = item.id || item.doc_id;
 
       return `
-        <div class="result-card bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition-colors shadow-sm fade-in" style="animation-delay: ${index * 0.1}s">
+        <div class="result-card bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition-colors shadow-sm fade-in flex flex-col" style="animation-delay: ${index * 0.1}s">
           <div class="flex justify-between items-start gap-4 mb-3">
-            <h4 class="font-medium text-xl leading-tight text-textMain">${UI.escapeHtml(item.question || item.title || 'Kết quả')}</h4>
+            <h4 class="font-medium text-xl leading-tight text-textMain">${UI.escapeHtml(questionText)}</h4>
             ${item.score ? `<span class="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full whitespace-nowrap">${(item.score * 100).toFixed(0)}% Match</span>` : ''}
           </div>
           
-          <div class="answer-wrapper">
+          <div class="answer-wrapper mb-4">
             <div class="answer-content answer-collapsed text-textMuted leading-relaxed text-[15px]">
               ${sanitizedHTML}
             </div>
@@ -174,12 +193,33 @@ const UI = {
             </button>
           </div>
           
-          ${lawRefsHTML}
+          <div class="mt-auto pt-4 border-t border-border/50 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div class="flex-1">
+              ${lawRefsHTML || '<div class="text-xs text-textMuted italic">Không có căn cứ pháp lý đính kèm</div>'}
+            </div>
+            <button class="result-summary-btn group px-3 py-1.5 rounded-lg border border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-1.5 self-end mb-1" 
+                    title="Tóm tắt nội dung này"
+                    data-id="${UI.escapeHtml(docId)}" 
+                    data-q="${UI.escapeHtml(questionText)}">
+              <i class="ph-fill ph-sparkle text-sm"></i>
+              <span class="text-[12px] font-bold uppercase tracking-wider">Summary</span>
+            </button>
+          </div>
         </div>
       `;
     }).join('');
 
     el.resultsList.classList.remove('hidden');
+
+    // Bind Summary Button clicks
+    const summaryBtns = el.resultsList.querySelectorAll('.result-summary-btn');
+    summaryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const q = btn.getAttribute('data-q');
+        onSummaryRequest(id, q);
+      });
+    });
 
     setTimeout(() => {
       const wrappers = el.resultsList.querySelectorAll('.answer-wrapper');
@@ -257,6 +297,7 @@ const UI = {
 
   renderRelatedQuestions(suggestions, onSelectCallback) {
     const el = UI.elements;
+    el.contextLoading.classList.add('hidden');
     if (!suggestions || suggestions.length === 0) {
       el.contextList.innerHTML = `<li class="text-textMuted text-xs italic py-2">Không có câu hỏi liên quan nào.</li>`;
     } else {
@@ -282,5 +323,54 @@ const UI = {
       });
     }
     el.contextList.classList.remove('hidden');
+  },
+
+  renderTrending(questions, onSelectCallback) {
+    const container = document.getElementById('trending-container');
+    const track1 = document.getElementById('trending-track-1');
+    const track2 = document.getElementById('trending-track-2');
+
+    if (!questions || questions.length === 0) return;
+
+    // Pick a random subset (e.g., 10 questions) to keep the marquee smooth and varied
+    const shuffled = [...questions].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 10);
+
+    // Split the items roughly in half
+    const half = Math.ceil(selected.length / 2);
+    const row1Questions = selected.slice(0, half);
+    const row2Questions = selected.slice(half);
+
+    const renderTrack = (qArray, targetNode) => {
+      if (qArray.length === 0) return;
+      const displayItems = [...qArray, ...qArray];
+      targetNode.innerHTML = displayItems.map(q => {
+        const text = typeof q === 'string' ? q : (q.question || q.text || JSON.stringify(q));
+        return `
+          <button class="trending-tag px-4 py-2 bg-surface/80 border border-border/80 hover:border-primary/50 text-textMuted hover:text-textMain rounded-full text-[14px] font-medium whitespace-nowrap transition-all shadow-sm hover:shadow flex items-center gap-2">
+            <i class="ph ph-trend-up text-primary"></i>
+            <span>${UI.escapeHtml(text)}</span>
+          </button>
+        `;
+      }).join('');
+    };
+
+    renderTrack(row1Questions, track1);
+    renderTrack(row2Questions, track2);
+
+    // Smooth fade in
+    setTimeout(() => {
+      container.classList.remove('opacity-0', 'pointer-events-none');
+      container.classList.add('opacity-100');
+    }, 100);
+
+    const btns = container.querySelectorAll('.trending-tag');
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const query = btn.querySelector('span').innerText;
+        onSelectCallback(query);
+      });
+    });
   }
 };
+

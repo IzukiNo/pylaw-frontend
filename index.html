@@ -75,16 +75,17 @@
       </div>
 
       <div class="relative group z-20">
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <div
+          class="search-icon-container absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:opacity-0 group-focus-within:-translate-x-4">
           <i
             class="ph ph-magnifying-glass text-textMuted text-xl group-focus-within:text-primary transition-colors"></i>
         </div>
         <input type="text" id="search-input"
-          class="block w-full bg-surface border border-border rounded-2xl py-4 pl-12 pr-12 text-textMain text-lg placeholder-textMuted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm hover:shadow transition-all"
+          class="block w-full bg-surface border border-border rounded-2xl py-4 pl-12 pr-12 text-textMain text-lg placeholder-textMuted focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm hover:shadow transition-all group-focus-within:pl-5"
           placeholder="Vượt đèn đỏ phạt bao nhiêu?" autocomplete="off">
         <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
           <button id="search-button"
-            class="p-2 bg-primary text-white rounded-xl hover:bg-primaryHover transition-colors opacity-0 pointer-events-none group-focus-within:opacity-100 group-focus-within:pointer-events-auto">
+            class="p-2 bg-primary text-white rounded-xl hover:bg-primaryHover transition-all duration-300 opacity-0 scale-90 pointer-events-none group-focus-within:opacity-100 group-focus-within:scale-100 group-focus-within:pointer-events-auto">
             <i class="ph ph-arrow-right text-lg"></i>
           </button>
         </div>
@@ -97,9 +98,18 @@
           </ul>
         </div>
       </div>
-    </div>
-    </div>
 
+      <!-- Trending Suggestions Marquee -->
+      <div id="trending-container"
+        class="mt-8 relative transition-all duration-700 w-full overflow-hidden mask-edges opacity-0 pointer-events-none flex flex-col gap-3">
+        <div id="trending-track-1" class="flex items-center gap-3 w-max animate-marquee hover:pause-animation">
+          <!-- Injected via JS -->
+        </div>
+        <div id="trending-track-2" class="flex items-center gap-3 w-max animate-marquee-reverse hover:pause-animation">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </div>
     <!-- Results Section (Hidden initially) -->
     <div id="results-section" class="w-full mt-8 pb-16 hidden opacity-0 transition-opacity duration-500">
 
@@ -133,8 +143,15 @@
                 <i class="ph-fill ph-sparkle text-primary text-xl"></i>
                 <h2 class="font-semibold text-lg">AI Summary</h2>
               </div>
-              <div id="ai-answer-content" class="text-textMain leading-relaxed prose-sm md:prose dark:prose-invert">
-                <!-- Injected via JS -->
+              <div class="answer-wrapper">
+                <div id="ai-answer-content"
+                  class="answer-content answer-collapsed text-textMain leading-relaxed prose-sm md:prose dark:prose-invert">
+                  <!-- Injected via JS -->
+                </div>
+                <button class="expand-toggle" onclick="UI.toggleExpand(this)">
+                  <span>Xem thêm</span>
+                  <i class="ph ph-caret-down"></i>
+                </button>
               </div>
             </div>
           </div>
